@@ -10,12 +10,12 @@
 
 @media only screen and (min-width: 0px) {
 	html { font-size: 11px; }
-	.container { width: 95%; }
+	.container { width: 90%; }
 }
 
 @media only screen and (min-width: 350px) {
 	html { font-size: 12px; }
-	.container { width: 95%; }
+	.container { width: 90%; }
 }
 
 @media only screen and (min-width: 500px) {
