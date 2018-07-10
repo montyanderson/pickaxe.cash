@@ -79,6 +79,15 @@ a {
 	border-radius: 0.2rem;
 }
 
+.miner .ui table {
+	margin: 1rem 0;
+}
+
+.miner .ui table td {
+	margin-right: 1rem;
+	padding-right: 1rem;
+}
+
 button {
 	padding: 0.5rem 1rem;
 	font-size: 1rem;

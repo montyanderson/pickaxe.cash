@@ -267,6 +267,17 @@ for(const { name } of abi) {
 		return "0".repeat(64 - hex.length) + hex;
 	};
 
+	const formatCoins = coins => {
+		console.log(coins);
+		coins = coins.toString();
+		const decimalPlaces = 18;
+
+		if(coins.length <= decimalPlaces)
+			return "0." + "0".repeat(decimalPlaces - coins.length) + coins;
+
+		return coins.slice(0, coins.length - decimalPlaces) + "." + coins.slice(coins.length - decimalPlaces);
+	};
+
 	const $difficulty = document.querySelector("*[name='difficulty']");
 	const $difficultyValue = document.querySelector(".difficulty-value");
 	const $jackpot = document.querySelector(".jackpot");
@@ -274,8 +285,8 @@ for(const { name } of abi) {
 	const $balance = document.querySelector(".balance");
 	const $mine = document.querySelector(".mine");
 
-	$jackpot.innerHTML = +jackpot;
-	$balance.innerHTML = +balance;
+	$jackpot.innerHTML = formatCoins(jackpot);
+	$balance.innerHTML = formatCoins(balance);
 
 	let rewardDifficulty;
 
@@ -283,7 +294,7 @@ for(const { name } of abi) {
 		rewardDifficulty = +$difficulty.value;
 		$difficultyValue.innerHTML = $difficulty.value;
 
-		$reward.innerHTML = jackpot * rewardDifficulty / jackpotDifficulty;
+		$reward.innerHTML = formatCoins(Math.floor(jackpot * rewardDifficulty / jackpotDifficulty));
 	};
 
 	$difficulty.oninput();
