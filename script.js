@@ -244,7 +244,6 @@ for(const { name } of abi) {
 }
 
 (async () => {
-
 	try {
 		await pickaxe.jackpot();
 	} catch(err) {
@@ -252,6 +251,7 @@ for(const { name } of abi) {
 	}
 
 	const jackpot = await pickaxe.jackpot();
+	const jackpotDifficulty = await pickaxe.jackpotDifficulty();
 	const decimals = await pickaxe.decimals();
 
 	const challenge = await pickaxe.challenge();
@@ -262,39 +262,64 @@ for(const { name } of abi) {
 	console.log(balance.toString());
 
 	const toHex = number => {
-		const hex = number.toString(16);
+		const hex = Number(number).toString(16);
 
 		return "0".repeat(64 - hex.length) + hex;
 	};
 
-	const rewardDifficulty = 1000;
-	const rewardTarget = (new web3.BigNumber(2)).pow(256).div(new web3.BigNumber(rewardDifficulty));
+	const $difficulty = document.querySelector("*[name='difficulty']");
+	const $difficultyValue = document.querySelector(".difficulty-value");
+	const $jackpot = document.querySelector(".jackpot");
+	const $reward = document.querySelector(".reward");
+	const $balance = document.querySelector(".balance");
+	const $mine = document.querySelector(".mine");
 
-	const header = challenge.slice(2) + toHex(rewardDifficulty) + address.slice(2);
+	$jackpot.innerHTML = +jackpot;
+	$balance.innerHTML = +balance;
 
-	let i = -1;
+	let rewardDifficulty;
 
-	function hash() {
-		const input = header + toHex(++i);
+	$difficulty.oninput = () => {
+		rewardDifficulty = +$difficulty.value;
+		$difficultyValue.innerHTML = $difficulty.value;
 
-		const output = new web3.BigNumber(web3.sha3(input, {
-			encoding: "hex"
-		}).slice(2), 16);
+		$reward.innerHTML = jackpot * rewardDifficulty / jackpotDifficulty;
+	};
 
-		return rewardTarget.greaterThan(output) === true;
-	}
+	$difficulty.oninput();
 
-	async function hashNonBlocking() {
-		for(let i = 0; i < 100; i++)
-			if(hash() === true)
-				return true;
+	async function mine() {
+		const rewardTarget = (new web3.BigNumber(2)).pow(256).div(new web3.BigNumber(rewardDifficulty));
 
-		return new Promise(r => setTimeout(r, 0));
-	}
+		const header = challenge.slice(2) + toHex(rewardDifficulty) + address.slice(2);
 
-	while(true) {
+		let i = -1;
+
+		function hash() {
+			const input = header + toHex(++i);
+
+			const output = new web3.BigNumber(web3.sha3(input, {
+				encoding: "hex"
+			}).slice(2), 16);
+
+			return rewardTarget.greaterThan(output) === true;
+		}
+
+		async function hashNonBlocking() {
+			for(let i = 0; i < 100; i++)
+				if(hash() === true)
+					return true;
+
+			return new Promise(r => setTimeout(r, 0));
+		}
+
 		while(await hashNonBlocking() !== true);
-		console.log(challenge, rewardDifficulty, address, i);
+		console.log({ rewardTarget, rewardDifficulty, challenge, rewardDifficulty, address, i });
 		await pickaxe.mint(i, rewardDifficulty);
 	}
+
+	$mine.onclick = () => {
+		mine();
+		$mine.disabled = true;
+	};
 })();

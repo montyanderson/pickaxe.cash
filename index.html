@@ -23,6 +23,25 @@
 				<p><strong>Check out the work in progress <a href="https://github.com/montyanderson/Pickaxe-standard">specification</a>.</strong></p>
 			</section>
 
+			<section class="miner">
+				<h3>Miner</h3>
+
+				<div class="ui">
+					<label for="difficulty">Difficulty</label>
+					<input type="range" name="difficulty"
+						  min="100" value="10000" max="1000000" />
+					<span class='difficulty-value'></span>
+
+					<pre>
+						Jackpot: <span class="jackpot"></span>
+						Reward:  <span class="reward"></span>
+						Balance: <span class="balance"></span>
+					</pre>
+
+					<button class="mine">Mine</button>
+				</div>
+			</section>
+
 			<section>
 				<h3>What is Pickaxe?</h3>
 
