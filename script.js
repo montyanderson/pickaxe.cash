@@ -223,31 +223,63 @@ const abi = [
 	}
 ];
 
-const web3 = new Web3(window.web3.currentProvider);
-
-const contract = web3.eth.contract(abi).at("0xc141fd8ba19b30d05d799ba5c7a95479ae2bb49f");
-
-const pickaxe = {};
-
-const promisify = f =>
-	new Promise((resolve, reject) =>
-		f((err, data) => err ? reject(err) : resolve(data)
-));
-
-for(const { name } of abi) {
-	pickaxe[name] = (...args) => new Promise(
-		(resolve, reject) =>
-			contract[name](...args, (err, data) =>
-				err ? reject(err) : resolve(data)
-			)
-	);
-}
-
 (async () => {
-	try {
-		await pickaxe.jackpot();
-	} catch(err) {
-		alert("Please enable MetaMask!");
+	const $ui = document.querySelector(".miner .ui");
+	const $help = document.querySelector(".miner .help");
+
+	const $difficulty = document.querySelector("*[name='difficulty']");
+	const $difficultyValue = document.querySelector(".difficulty-value");
+	const $jackpot = document.querySelector(".jackpot");
+	const $reward = document.querySelector(".reward");
+	const $balance = document.querySelector(".balance");
+	const $speed = document.querySelector(".speed");
+	const $mine = document.querySelector(".mine");
+
+	if(typeof window.web3 === "object") {
+		$ui.style.display = "block";
+		$help.style.display = "none";
+	} else {
+		return;
+	}
+
+	const web3 = window.web3 = new Web3(window.web3.currentProvider);
+
+	/*
+	if(web3.eth.coinbase === null) {
+		$ui.style.display = "none";
+		$help.style.display = "block";
+
+		$help.innerHTML = `<p>Please unlock Web3.</p>`;
+
+		return;
+	}
+	*/
+
+	const promisify = f =>
+		new Promise((resolve, reject) =>
+			f((err, data) => err ? reject(err) : resolve(data)
+	));
+
+	if(await promisify(web3.version.getNetwork) !== "3") {
+		$ui.style.display = "none";
+		$help.style.display = "block";
+
+		$help.innerHTML = `<p>Please use the Ropsten network.</p>`;
+
+		return;
+	}
+
+	const contract = window.contract = web3.eth.contract(abi).at("0x0dd4f25228ba45aec2f55ec7b2f6c22b9fd8533f");
+
+	const pickaxe = {};
+
+	for(const { name } of abi) {
+		pickaxe[name] = (...args) => new Promise(
+			(resolve, reject) =>
+				contract[name](...args, (err, data) =>
+					err ? reject(err) : resolve(data)
+				)
+		);
 	}
 
 	const jackpot = await pickaxe.jackpot();
@@ -259,23 +291,25 @@ for(const { name } of abi) {
 
 	const balance = await pickaxe.balanceOf(address);
 
-	console.log(balance.toString());
-
 	const toHex = number => {
 		const hex = Number(number).toString(16);
 
 		return "0".repeat(64 - hex.length) + hex;
 	};
 
-	const $difficulty = document.querySelector("*[name='difficulty']");
-	const $difficultyValue = document.querySelector(".difficulty-value");
-	const $jackpot = document.querySelector(".jackpot");
-	const $reward = document.querySelector(".reward");
-	const $balance = document.querySelector(".balance");
-	const $mine = document.querySelector(".mine");
+	const formatCoins = coins => {
+		coins = coins.toString(10);
+		const decimalPlaces = 18;
 
-	$jackpot.innerHTML = +jackpot;
-	$balance.innerHTML = +balance;
+		if(coins.length <= decimalPlaces)
+			return "0." + "0".repeat(decimalPlaces - coins.length) + coins;
+
+		return `${coins.slice(0, coins.length - decimalPlaces)}.${coins.slice(coins.length - decimalPlaces)}`;
+	};
+
+
+	$jackpot.innerHTML = formatCoins(jackpot);
+	$balance.innerHTML = formatCoins(balance);
 
 	let rewardDifficulty;
 
@@ -283,7 +317,7 @@ for(const { name } of abi) {
 		rewardDifficulty = +$difficulty.value;
 		$difficultyValue.innerHTML = $difficulty.value;
 
-		$reward.innerHTML = jackpot * rewardDifficulty / jackpotDifficulty;
+		$reward.innerHTML = formatCoins(jackpot.mul(rewardDifficulty).div(jackpotDifficulty).floor());
 	};
 
 	$difficulty.oninput();
@@ -306,20 +340,28 @@ for(const { name } of abi) {
 		}
 
 		async function hashNonBlocking() {
-			for(let i = 0; i < 100; i++)
+			const startTime = Date.now();
+
+			for(let i = 0; i < 1000; i++)
 				if(hash() === true)
 					return true;
+
+			const delta = Date.now() - startTime;
+
+			$speed.innerHTML = (1000 / delta * 1000).toFixed(2);
 
 			return new Promise(r => setTimeout(r, 0));
 		}
 
+		$mine.disabled = true;
 		while(await hashNonBlocking() !== true);
+		$mine.disabled = false;
+
 		console.log({ rewardTarget, rewardDifficulty, challenge, rewardDifficulty, address, i });
 		await pickaxe.mint(i, rewardDifficulty);
 	}
 
-	$mine.onclick = () => {
-		mine();
-		$mine.disabled = true;
+	$mine.onclick = async () => {
+		await mine();
 	};
 })();

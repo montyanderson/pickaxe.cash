@@ -26,17 +26,34 @@
 			<section class="miner">
 				<h3>Miner</h3>
 
+				<div class="help">
+					<p>Pickaxe requires a Web3 provider, such as <a href="https://metamask.io/">MetaMask</a>.</p>
+				</div>
+
 				<div class="ui">
 					<label for="difficulty">Difficulty</label>
 					<input type="range" name="difficulty"
 						  min="100" value="10000" max="1000000" />
 					<span class='difficulty-value'></span>
 
-					<pre>
-						Jackpot: <span class="jackpot"></span>
-						Reward:  <span class="reward"></span>
-						Balance: <span class="balance"></span>
-					</pre>
+					<table>
+						<tr>
+							<td>Jackpot</td>
+							<td class="jackpot"></td>
+						</tr>
+						<tr>
+							<td>Reward</td>
+							<td class="reward"></td>
+						</tr>
+						<tr>
+							<td>Balance</td>
+							<td class="balance"></td>
+						</tr>
+						<tr>
+							<td>Speed</td>
+							<td><span class='speed'>0</span> h/s</td>
+						</tr>
+					</table>
 
 					<button class="mine">Mine</button>
 				</div>
